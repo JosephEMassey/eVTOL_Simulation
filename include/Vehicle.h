@@ -14,6 +14,15 @@ enum VehicleType
     E,
 };
 
+enum VehicleStateType
+{
+    CRUISING,
+    NEEDS_CHARGED,
+    CHARGING,
+    CHARGED,
+    EXIT
+};
+
 class Vehicle
 {
     public:
@@ -24,6 +33,8 @@ class Vehicle
         float time_to_charge;
         float energy_use_at_cruise;
         float prob_of_fault;
+
+        VehicleStateType state;
 
     public:
         Vehicle() = default;

@@ -55,9 +55,10 @@ int main(void)
 {
     unsigned short numVehicles = 20;
     unsigned short numVehicleTypes = 5;
+    unsigned short numChargers = 3;
 
     auto sim = std::make_shared<Simulation>();
-    sim->Create(numVehicles, numVehicleTypes);
+    sim->Create(numVehicles, numVehicleTypes, numChargers);
     sim->Start();
 
     return 0;

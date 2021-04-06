@@ -7,8 +7,14 @@
 #include "Simulation.h"
 #include "Vehicle.h"
 
+Simulation::Simulation()
+{
+
+}
+
 void Simulation::Create(const unsigned short numVehicles,
-                        const unsigned short numVehicleTypes)
+                        const unsigned short numVehicleTypes,
+                        const unsigned short numChargers)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -24,38 +30,56 @@ void Simulation::Create(const unsigned short numVehicles,
 
 void Simulation::Start()
 {
+    _charger = std::make_shared<Charger>(3, _vehicle_charging_q);
+
+    // Vehicles
     std::vector<std::thread> vehicle_threads;
     for(auto& v : _vehicles)
-        vehicle_threads.push_back(std::thread(Run, v));
+        vehicle_threads.push_back(std::thread(Run, std::cref(v), std::ref(_vehicle_charging_q)));
 
     for(auto& v : vehicle_threads)
         v.join();
 }
 
-void Simulation::Run(std::shared_ptr<Vehicle> v)
+void Simulation::Run(const std::shared_ptr<Vehicle>& v,
+                     TLockedQueue<Vehicle>&          chargingQ)
 {
-    std::cout << "Thread " << std::this_thread::get_id() << " running " << std::endl;
-    std::cout << v->to_string() << std::endl;
-
     while(true)
     {
-        // Fly
+        switch(v->state)
+        {
+            case VehicleStateType::NEEDS_CHARGED:
+                v->state = VehicleStateType::CHARGING;
+                chargingQ.enqueue(*v);
+                break;
 
-        // 1 sec of real time == 1 min of sim time
-        int64_t cruise_time = v->CruiseTime();
+            case VehicleStateType::CHARGED:
+                v->state = VehicleStateType::CRUISING;
+                break;
 
-        std::this_thread::sleep_for (std::chrono::seconds(1));
+            case VehicleStateType::CHARGING:
+                break;
 
-        // Cruise Speed:         120 mph
-        // Battery Capacity:     320 kWh
-        // Energy use at Cruise: 1.6 kWh/mile
+            case VehicleStateType::CRUISING:
+            {
+                int64_t cruise_time = v->CruiseTime();
+                std::cout << v->name << " cruising for  " << cruise_time << " seconds " << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(cruise_time));
+            }
+                v->state = VehicleStateType::CHARGING;
+                break;
 
-        // 320 kwh / 1.6 kWh/mile = 200 miles
-        // 200 miles / 120 mph = 1.666667 hrs
-        // 1.666667 hrs == 100 mins
-        // 100 mins == 6000 secs
+            case VehicleStateType::EXIT:
+                return;
 
-        // Vehicle A can fly for 100 mins and then needs charged.
-        
+            default:
+                break;
+        }
+        // auto start = std::chrono::system_clock::now();
+        // auto end = std::chrono::system_clock::now();
+        // std::chrono::duration<double> elapsed_seconds = end-start;
+        // std::cout << v->name << " elapsed time: " << elapsed_seconds.count() << std::endl;
     }
+
+    std::cout << v->name << " EXITING " << std::endl;
 }

@@ -15,7 +15,8 @@ Vehicle::Vehicle( const std::string&   n,
                                               passenger_count     (pc),
                                               time_to_charge      (ttc),
                                               energy_use_at_cruise(eac),
-                                              prob_of_fault       (pof)
+                                              prob_of_fault       (pof),
+                                              state(VehicleStateType::CRUISING)
 { }
 
 const std::string Vehicle::to_string()
@@ -49,7 +50,20 @@ std::shared_ptr<Vehicle> Vehicle::Create(VehicleType type)
     }
 }
 
+/**
+ * @brief Calculates the cruise time in seconds converted to simulation time.
+ * 
+ * @return Cruise time in seconds.
+ */
 int64_t Vehicle::CruiseTime()
 {
-    return floor(battery_capacity / energy_use_at_cruise / cruise_speed * 60 * 60);
+    // Cruise Speed:         120 mph
+    // Battery Capacity:     320 kWh
+    // Energy use at Cruise: 1.6 kWh/mile
+    // 320 kwh / 1.6 kWh/mile = 200 miles
+    // 200 miles / 120 mph = 1.666667 hrs
+    // 1.666667 hrs == 100 mins
+    // Vehicle A can fly for 100 mins (100s sim time) and then needs charged.
+
+    return floor(battery_capacity / energy_use_at_cruise / cruise_speed * 60);
 }

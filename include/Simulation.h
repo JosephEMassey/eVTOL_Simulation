@@ -4,27 +4,35 @@
 #include <vector>
 
 #include "Vehicle.h"
+#include "TLockedQueue.h"
+#include "Charger.h"
 
 class Simulation
 {
     private:
         std::vector<std::shared_ptr<Vehicle>> _vehicles;
+        TLockedQueue<Vehicle> _vehicle_charging_q;
+        std::shared_ptr<Charger> _charger;
 
     public:
-        Simulation() = default;
+        Simulation();
         virtual ~Simulation() = default;
 
         void Create(const unsigned short numVehicles,
-                    const unsigned short numVehicleTypes);
+                    const unsigned short numVehicleTypes,
+                    const unsigned short numChargers);
         
         void Start();
         
 
     private:
         
-        static void Run(std::shared_ptr<Vehicle> v);
+        static void Run(const std::shared_ptr<Vehicle>& v, 
+                        TLockedQueue<Vehicle>& chargingQ);
         
         std::shared_ptr<Vehicle> CreateRandomVehicle();
+
+
 
 };
 
