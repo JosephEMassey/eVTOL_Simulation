@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <thread>
+#include <sstream>
 
 #include "Simulation.h"
 #include "Vehicle.h"
@@ -24,14 +25,12 @@ void Simulation::Create(const unsigned short numVehicles,
     for(int i = 0; i < numVehicles; i++)
         _vehicles.push_back(Vehicle::Create(static_cast<VehicleType>(distr(gen))));
 
-    for(auto& a : _vehicles)
-        std::cout << a->to_string() << std::endl;
+    // Create chargers
+    _charger = std::make_shared<Charger>(numChargers, _vehicle_charging_q);
 }
 
 void Simulation::Start()
 {
-    _charger = std::make_shared<Charger>(3, _vehicle_charging_q);
-
     // Vehicles
     std::vector<std::thread> vehicle_threads;
     for(auto& v : _vehicles)
@@ -42,7 +41,7 @@ void Simulation::Start()
 }
 
 void Simulation::Run(const std::shared_ptr<Vehicle>& v,
-                     TLockedQueue<Vehicle>&          chargingQ)
+                     TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ)
 {
     while(true)
     {
@@ -50,7 +49,7 @@ void Simulation::Run(const std::shared_ptr<Vehicle>& v,
         {
             case VehicleStateType::NEEDS_CHARGED:
                 v->state = VehicleStateType::CHARGING;
-                chargingQ.enqueue(*v);
+                chargingQ.enqueue(v);
                 break;
 
             case VehicleStateType::CHARGED:
@@ -63,10 +62,12 @@ void Simulation::Run(const std::shared_ptr<Vehicle>& v,
             case VehicleStateType::CRUISING:
             {
                 int64_t cruise_time = v->CruiseTime();
-                std::cout << v->name << " cruising for  " << cruise_time << " seconds " << std::endl;
+                std::stringstream msg;
+                msg << "<Vehicle " << v->name << ">" << " cruising for " << cruise_time << " mins" << std::endl;
+                std::cout << msg.str();
                 std::this_thread::sleep_for(std::chrono::seconds(cruise_time));
             }
-                v->state = VehicleStateType::CHARGING;
+                v->state = VehicleStateType::NEEDS_CHARGED;
                 break;
 
             case VehicleStateType::EXIT:
@@ -75,11 +76,9 @@ void Simulation::Run(const std::shared_ptr<Vehicle>& v,
             default:
                 break;
         }
-        // auto start = std::chrono::system_clock::now();
-        // auto end = std::chrono::system_clock::now();
-        // std::chrono::duration<double> elapsed_seconds = end-start;
-        // std::cout << v->name << " elapsed time: " << elapsed_seconds.count() << std::endl;
     }
 
-    std::cout << v->name << " EXITING " << std::endl;
+    std::stringstream msg;
+    msg << v->name << " EXITING " << std::endl;
+    std::cout << msg.str();
 }

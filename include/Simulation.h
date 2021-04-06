@@ -11,7 +11,7 @@ class Simulation
 {
     private:
         std::vector<std::shared_ptr<Vehicle>> _vehicles;
-        TLockedQueue<Vehicle> _vehicle_charging_q;
+        TLockedQueue<std::shared_ptr<Vehicle>> _vehicle_charging_q;
         std::shared_ptr<Charger> _charger;
 
     public:
@@ -28,7 +28,7 @@ class Simulation
     private:
         
         static void Run(const std::shared_ptr<Vehicle>& v, 
-                        TLockedQueue<Vehicle>& chargingQ);
+                        TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ);
         
         std::shared_ptr<Vehicle> CreateRandomVehicle();
 
