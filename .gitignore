@@ -33,3 +33,6 @@
 
 **/CMakeFiles
 **/CMakeCache.txt
+**/build/app
+**/build/test
+**/bin

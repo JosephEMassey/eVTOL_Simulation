@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "app",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/interview-question",
+            "program": "${workspaceFolder}/bin/eVTOL_Simulation",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -21,7 +21,27 @@
                     "ignoreFailures": false
                 }
             ],
-            "preLaunchTask": "build debug",
+            "preLaunchTask": "app - make",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/eVTOL_Unit_Tests",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                }
+            ],
+            "preLaunchTask": "tests - make",
             "miDebuggerPath": "/usr/bin/gdb"
         }
     ]

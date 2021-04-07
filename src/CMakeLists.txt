@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(eVTOL_Unit_Tests)
+project(eVTOL_Simulation)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -14,18 +14,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../../bin/)
- 
-# Locate GTest
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS} ../include)
- 
+
+# include files
+include_directories(../include)
+
 # source files
 file(GLOB_RECURSE SOURCES "*.cpp")
 
-# Link runTests with what we want to test and the GTest and pthread library
+# create/build exe
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-target_link_libraries(${PROJECT_NAME} ${GTEST_LIBRARIES} Threads::Threads)
+target_link_libraries(${PROJECT_NAME} Threads::Threads)

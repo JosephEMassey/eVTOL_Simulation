@@ -45,8 +45,3 @@ TEST_F (TLockedQTest, dequeue)
 
     EXPECT_EQ(0, _q.size());
 }
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

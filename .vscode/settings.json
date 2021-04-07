@@ -50,5 +50,6 @@
         "ratio": "cpp",
         "mutex": "cpp",
         "thread": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": true
 }

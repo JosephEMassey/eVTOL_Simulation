@@ -4,15 +4,51 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "app - clean",
             "type": "shell",
-            "label": "build debug",
-            "command": "make",
+            "command": "make clean",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/build/app"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "app - cmake (debug)",
+            "type": "shell",
+            "command": "cmake",
             "args": [
-                "-j16",
-                "DEBUG=1"
+                "../../src/",
+                "-DCMAKE_BUILD_TYPE=Debug"
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}/build/app"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "app - cmake (release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "../../src/",
+                "-DCMAKE_BUILD_TYPE=Release"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build/app"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "app - make",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "-j",
+                "8"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build/app"
             },
             "problemMatcher": [],
             "group": {
@@ -21,27 +57,68 @@
             }
         },
         {
+            "label": "tests - clean",
             "type": "shell",
-            "label": "build release",
-            "command": "make",
-            "args": [
-                "-j16"
-            ],
+            "command": "make clean",
+            "args": [],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}/build/test"
             },
             "problemMatcher": []
         },
         {
+            "label": "tests - cmake (debug)",
             "type": "shell",
-            "label": "make clean",
-            "command": "make clean",
+            "command": "cmake",
             "args": [
+                "../../test/",
+                "-DCMAKE_BUILD_TYPE=Debug"
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}/build/test"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "tests - cmake (release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "../../test/",
+                "-DCMAKE_BUILD_TYPE=Release"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build/test"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "tests - make",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "-j",
+                "8"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build/test"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build all (release)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "app - clean",
+                "app - cmake (release)",
+                "app - make",
+                "tests - clean",
+                "tests - cmake (release)",
+                "tests - make"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }
