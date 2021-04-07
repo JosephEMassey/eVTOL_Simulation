@@ -24,7 +24,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/build/app"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn":["app - mkdir"]
         },
         {
             "label": "app - cmake (release)",
@@ -37,7 +39,18 @@
             "options": {
                 "cwd": "${workspaceFolder}/build/app"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn":["app - mkdir"]
+        },
+        {
+            "label": "app - mkdir",
+            "type": "shell",
+            "command" : "mkdir",
+            "args": [
+                "-p",
+                "${workspaceFolder}/build/app"
+            ]
         },
         {
             "label": "app - make",
@@ -77,7 +90,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/build/test"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn":["tests - mkdir"]
         },
         {
             "label": "tests - cmake (release)",
@@ -90,7 +105,18 @@
             "options": {
                 "cwd": "${workspaceFolder}/build/test"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn":["tests - mkdir"]
+        },
+        {
+            "label": "tests - mkdir",
+            "type": "shell",
+            "command" : "mkdir",
+            "args": [
+                "-p",
+                "${workspaceFolder}/build/test"
+            ]
         },
         {
             "label": "tests - make",
@@ -109,10 +135,8 @@
             "label": "build all (release)",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "app - clean",
                 "app - cmake (release)",
                 "app - make",
-                "tests - clean",
                 "tests - cmake (release)",
                 "tests - make"
             ],
