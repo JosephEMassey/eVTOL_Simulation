@@ -26,6 +26,8 @@ public:
     void dequeue(T& item);
     T    dequeue();
 
+    size_t size();
+
 private:
     std::queue<T> _q;
     std::mutex _cs;
@@ -43,10 +45,10 @@ private:
 template <typename T>
 inline void TLockedQueue<T>::enqueue(const T& item)
 {
-    std::unique_lock<std::mutex> lock(_cs);
-    _q.push(item);
-    lock.unlock();
-    _cv.notify_one();
+  std::unique_lock<std::mutex> lock(_cs);
+  _q.push(item);
+  lock.unlock();
+  _cv.notify_one();
 }
 
 /**
@@ -58,10 +60,10 @@ inline void TLockedQueue<T>::enqueue(const T& item)
 template <typename T>
 inline void TLockedQueue<T>::enqueue(T&& item)
 {
-    std::unique_lock<std::mutex> lock(_cs);
-    _q.push(std::move(item));
-    lock.unlock();
-    _cv.notify_one();
+  std::unique_lock<std::mutex> lock(_cs);
+  _q.push(std::move(item));
+  lock.unlock();
+  _cv.notify_one();
 }
 
 /**
@@ -74,14 +76,14 @@ inline void TLockedQueue<T>::enqueue(T&& item)
 template <typename T>
 inline T TLockedQueue<T>::dequeue()
 {
-    std::unique_lock<std::mutex> lock(_cs);
-    while (_q.empty())
-    {
-      _cv.wait(lock);
-    }
-    auto item = _q.front();
-    _q.pop();
-    return item;
+  std::unique_lock<std::mutex> lock(_cs);
+  while (_q.empty())
+  {
+    _cv.wait(lock);
+  }
+  auto item = _q.front();
+  _q.pop();
+  return item;
 }
 
 /**
@@ -92,14 +94,21 @@ inline T TLockedQueue<T>::dequeue()
  */
 template <typename T>
 inline void TLockedQueue<T>::dequeue(T& item)
+{
+  std::unique_lock<std::mutex> lock(_cs);
+  while (_q.empty())
   {
-    std::unique_lock<std::mutex> lock(_cs);
-    while (_q.empty())
-    {
-      _cv.wait(lock);
-    }
-    item = _q.front();
-    _q.pop();
+    _cv.wait(lock);
   }
+  item = _q.front();
+  _q.pop();
+}
+
+template <typename T>
+inline size_t TLockedQueue<T>::size()
+{
+  std::lock_guard<std::mutex> lock(_cs);
+  return _q.size();
+}
 
 #endif
