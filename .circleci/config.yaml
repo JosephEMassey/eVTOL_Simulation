@@ -1,0 +1,36 @@
+version: 2.1
+executors:
+  exectr:
+    docker:
+      - image: josephemassey/evtol
+jobs:
+  build_and_test:
+    executor: exectr
+    steps:
+      - checkout
+      - run:
+          name: Setup repo
+          command: |
+            mkdir -p /workspaces/
+            cd /workspaces
+            git clone https://github.com/JosephEMassey/eVTOL_Simulation.git
+      - run:
+          name: Setup cmake and build artifacts
+          command: |
+            mkdir -p /workspaces/eVTOL_Simulation/build/app
+            cd /workspaces/eVTOL_Simulation/build/app
+            cmake ../../src
+            make -j 4
+            mkdir -p /workspaces/eVTOL_Simulation/build/test
+            cd /workspaces/eVTOL_Simulation/build/test
+            cmake ../../test
+            make -j 4
+            /workspaces/eVTOL_Simulation/bin/eVTOL_Unit_Tests
+      - store_test_results:
+          path: /workspaces/eVTOL_Simulation/bin
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - build_and_test
