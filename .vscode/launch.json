@@ -9,7 +9,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/eVTOL_Simulation",
-            "args": [],
+            "args": [
+                "-v", "20",
+                "-c", "3",
+                "-s", "180"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
