@@ -20,11 +20,11 @@ public:
     virtual ~Simulation() = default;
 
     void Create();        
-    void Run(const int64_t secs);
+    void Run(const int64_t sim_time_secs);
 
 private:
     std::vector<std::shared_ptr<SimulationObject>> _sim_objs;
-    TLockedQueue<std::shared_ptr<Vehicle>>         _vehicle_charging_q;
+    ChargingQ _vehicle_charging_q;
 
     const unsigned short _num_vehicles;
     const unsigned short _num_vehicle_types;

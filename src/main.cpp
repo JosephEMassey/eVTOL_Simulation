@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     uint16_t num_vehicles     = 20;
     uint16_t num_vehicleTypes = 5;
     uint16_t num_chargers     = 3;
-    uint64_t secs             = 10;
+    uint64_t secs             = 180;
 
     // Simple way to parse command line args
     for(int i = 0; i < argc; ++i)

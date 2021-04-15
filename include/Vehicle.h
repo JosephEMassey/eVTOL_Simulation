@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "SimulationObject.h"
+#include "StopWatch.h"
 #include "TLockedQueue.h"
 
 enum VehicleType 
@@ -26,20 +27,15 @@ enum VehicleStateType
     CHARGED
 };
 
-
-
 class Vehicle : public SimulationObject, 
                 public std::enable_shared_from_this<Vehicle>
 {
 
 public:
-
-    // SimulationObject
-    //virtual void Start() override;
-    //virtual void Stop() override;
     
     virtual void Run()        override;
     virtual void PrintStats() override;
+    virtual const std::string Header() override;
 
     // States
     void NeedsCharged();
@@ -47,12 +43,16 @@ public:
     void ChangeState(VehicleStateType state);
 
     int64_t CruiseTime()   const;
-    int64_t TimeToCharge() const;
+    int64_t ChargeTime() const;
+
+    float ProbabilityOfFault() const ;
 
     std::string Name()  const { return _name; }
     unsigned short ID() const { return _id;   }
 
     const std::string ToString() const;
+
+    
 
 public:
 
@@ -73,19 +73,9 @@ public:
                                            const unsigned short id,
                                            TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ);
 
-    void print(const std::stringstream& ss) const;
-
-    std::chrono::steady_clock::time_point _vehicle_cruising_time_start;
-    std::chrono::steady_clock::time_point _vehicle_cruising_time_end;
-    std::chrono::seconds _vehicle_cruising_time_total;
-
-    std::chrono::steady_clock::time_point _vehicle_charging_time_start;
-    std::chrono::steady_clock::time_point _vehicle_charging_time_end;
-    std::chrono::seconds _vehicle_charging_time_total;
-
-    std::chrono::steady_clock::time_point _vehicle_in_q_time_start;
-    std::chrono::steady_clock::time_point _vehicle_in_q_time_end;
-    std::chrono::seconds _vehicle_in_q_time_total;
+    StopWatch CruisingTime;
+    StopWatch ChargingTime;
+    StopWatch QingTime;
 
 private:
 
@@ -104,6 +94,8 @@ protected:
     const float _time_to_charge;
 
     const unsigned short _id;    
+
+    const std::string _header;
 
     TLockedQueue<std::shared_ptr<Vehicle>>& _charging_q;
 

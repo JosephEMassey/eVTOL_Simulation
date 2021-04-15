@@ -22,6 +22,7 @@ Vehicle::Vehicle(const std::string& n,
                                               _prob_of_fault       (pof),
                                               _time_to_charge      (ttc),
                                               _id                  (id),
+                                              _header("<Vehicle " + _name + std::to_string(_id) + "> "),
                                               _charging_q { chargingQ },
                                               _state(INITIAL)
 { 
@@ -73,8 +74,6 @@ std::shared_ptr<Vehicle> Vehicle::Create(VehicleType type,
  */
 int64_t Vehicle::CruiseTime() const
 {
-
-
     return floor(_battery_capacity / _energy_use_at_cruise / _cruise_speed * 60);
 }
 
@@ -83,9 +82,14 @@ int64_t Vehicle::CruiseTime() const
  * 
  * @return int64_t Time to Charge in seconds.
  */
-int64_t Vehicle::TimeToCharge() const
+int64_t Vehicle::ChargeTime() const
 {
     return ceil(_time_to_charge * 60);
+}
+
+float Vehicle::ProbabilityOfFault() const
+{
+    return _prob_of_fault;
 }
 
 /**
@@ -96,7 +100,7 @@ void Vehicle::Run()
 {   
     std::stringstream ss;
     ss << "Running...";
-    print(ss);
+    PrintToConsole(ss);
     
     while(_thread_state != ThreadState::EXIT)
     {
@@ -130,34 +134,6 @@ void Vehicle::Run()
     }
 }
 
-/**
- * @brief 
- * 
- * @param ss 
- */
-void Vehicle::print(const std::stringstream& ss) const
-{
-    tm localTime;
-    std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
-    time_t now = std::chrono::system_clock::to_time_t(t);
-    localtime_r(&now, &localTime);
-
-    const std::chrono::duration<double> tse = t.time_since_epoch();
-    std::chrono::seconds::rep milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tse).count() % 1000;
-
-    std::stringstream msg;
-    msg << "["
-        << std::setfill('0') << std::setw(2) << localTime.tm_hour << ':'
-        << std::setfill('0') << std::setw(2) << localTime.tm_min  << ':'
-        << std::setfill('0') << std::setw(2) << localTime.tm_sec  << '.'
-        << std::setfill('0') << std::setw(3) << milliseconds
-        << "] "
-        << "<Vehicle " << _name << _id << "> " << ss.str() << std::endl;
-
-    // Print to console
-    std::cout << msg.str();
-}
-
 void Vehicle::ChangeState(VehicleStateType state)
 {
     _state = state;
@@ -169,21 +145,19 @@ void Vehicle::Cruise()
 
     std::stringstream ss;
     ss << "Cruising for " << cruise_time << " mins";
-    print(ss);
+    PrintToConsole(ss);
 
-    _vehicle_cruising_time_start = std::chrono::steady_clock::now();
+    CruisingTime.Tik();
 
     // Blocks for desired seconds OR thread exits
     WaitFor(std::chrono::seconds(cruise_time));
 
-    _vehicle_cruising_time_end    = std::chrono::steady_clock::now();
-    _vehicle_cruising_time_total += std::chrono::duration_cast<std::chrono::seconds>(_vehicle_cruising_time_end - _vehicle_cruising_time_start);
-    
+    CruisingTime.Tok();
 }
 
 void Vehicle::NeedsCharged()
 {
-    _vehicle_in_q_time_start = std::chrono::steady_clock::now();
+    QingTime.Tik();
 
     // Add this vehicle to the charging queue
     _charging_q.enqueue(shared_from_this());
@@ -192,23 +166,26 @@ void Vehicle::NeedsCharged()
 void Vehicle::PrintStats()
 {
     // Print stats
-    /* average time in flight                 = Total Cruising Time / Simulation Time
-       average time charging                  = Total Charging Time / Simulation Time
-       average time waiting in line to charge = Total Time In Q     / Simulation Time 
-       max number of faults                   = Probability of fault/hr * 60 * Simulation Time
-       total distance traveled by passengers  = Passenger Count * Total Cruising Time * Cruise Speed
+    // average time in flight                 = Total Cruising Time / Simulation Time
+    // average time charging                  = Total Charging Time / Simulation Time
+    // average time waiting in line to charge = Total Time In Q     / Simulation Time 
+    // max number of faults                   = Probability of fault/hr * 60 * Simulation Time
+    // total distance traveled by passengers  = Passenger Count * Total Cruising Time * Cruise Speed
 
-                                                4 * 120 mph * (60 m / 60) = 480    miles
-                                                5 * 100 mph * (74 m / 60) = 616.67 miles
-
-    */
+    //                                         4 * 120 mph * (60 m / 60) = 480    miles
+    //                                         5 * 100 mph * (74 m / 60) = 616.67 miles
 
     std::stringstream output;
-    output << "Total Cruising Time: "  << _vehicle_cruising_time_total.count() << " mins\t"
-           << "Total Charging Time: "  << _vehicle_charging_time_total.count() << " mins\t"
-           << "Total Q Time: "         << _vehicle_in_q_time_total.count()     << " mins\t"
-           << "Total Distance: "       << _passenger_count * _cruise_speed * float(_vehicle_cruising_time_total.count()) / 60 << " miles\t";
+    output << "Total Cruising Time: "  << CruisingTime.Total() << " mins\t"
+           << "Total Charging Time: "  << ChargingTime.Total() << " mins\t"
+           << "Total Q Time: "         << QingTime.Total()     << " mins\t"
+           << "Total Distance: "       << _passenger_count * _cruise_speed * float(CruisingTime.Total()) / 60 << " miles\t";
            //<< "Probability of Fault: " << prob_of_fault * (180 / 60);
 
-    print(output);
+    PrintToConsole(output);
+}
+
+const std::string Vehicle::Header()
+{
+    return _header;
 }
