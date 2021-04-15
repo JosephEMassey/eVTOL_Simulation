@@ -4,19 +4,31 @@
 #include <memory>
 
 #include "Vehicle.h"
-#include "TLockedQueue.h"
+#include "SimulationObject.h"
 
-class Charger
+class Charger : public SimulationObject
 {
-    private:
-        static void Run(TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ, const unsigned int& charger_num);
-        
-    public:
-        explicit Charger( const unsigned int num_chargers, 
-                          TLockedQueue<std::shared_ptr<Vehicle>>& vehicle_charging_q);
+public:
+    Charger()                           = delete; // Disable Default CTor
+    Charger(const Charger &)            = delete; // Disable Copy
+    Charger &operator=(const Charger &) = delete; // Disable Assignment
+    
+    Charger( const unsigned int id, 
+             ChargingQ& charging_q);
 
-        void Start(); 
-        virtual ~Charger() = default;
+    virtual ~Charger() = default;
+
+    // SimulationObject
+    virtual void PrintStats() override;
+
+    // SimulationThread
+    virtual void Run() override;
+    
+private:
+    const unsigned short _id;
+    ChargingQ& _charging_q;
+
+    void print(const std::stringstream& ss);
 };
 
 #endif

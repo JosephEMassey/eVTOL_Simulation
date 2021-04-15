@@ -9,31 +9,26 @@
 
 class Simulation
 {
-    private:
-        std::vector<std::shared_ptr<Vehicle>> _vehicles;
-        TLockedQueue<std::shared_ptr<Vehicle>> _vehicle_charging_q;
-        std::shared_ptr<Charger> _charger;
+public:
+    Simulation()                              = delete; // Disable Default CTor
+    Simulation(const Simulation &)            = delete; // Disable Copy
+    Simulation &operator=(const Simulation &) = delete; // Disable Assignment
+    Simulation(const unsigned short num_vehicles,
+               const unsigned short num_vehicle_types,
+               const unsigned short num_chargers);
+ 
+    virtual ~Simulation() = default;
 
-    public:
-        Simulation();
-        virtual ~Simulation() = default;
+    void Create();        
+    void Run(const int64_t secs);
 
-        void Create(const unsigned short numVehicles,
-                    const unsigned short numVehicleTypes,
-                    const unsigned short numChargers);
-        
-        void Start();
-        
+private:
+    std::vector<std::shared_ptr<SimulationObject>> _sim_objs;
+    TLockedQueue<std::shared_ptr<Vehicle>>         _vehicle_charging_q;
 
-    private:
-        
-        static void Run(const std::shared_ptr<Vehicle>& v, 
-                        TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ);
-        
-        std::shared_ptr<Vehicle> CreateRandomVehicle();
-
-
-
+    const unsigned short _num_vehicles;
+    const unsigned short _num_vehicle_types;
+    const unsigned short _num_chargers;
 };
 
 

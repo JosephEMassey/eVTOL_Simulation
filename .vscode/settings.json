@@ -49,7 +49,11 @@
         "ctime": "cpp",
         "ratio": "cpp",
         "mutex": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "iomanip": "cpp",
+        "future": "cpp"
     },
     "cmake.configureOnOpen": true
 }

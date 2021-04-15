@@ -1,44 +1,91 @@
 #include <iostream>
-#include <thread>
-#include <vector>
-#include <chrono>
-#include <math.h>
-#include <sstream>
+#include <iomanip>
 
 #include "Charger.h"
 
-Charger::Charger(const unsigned int num_chargers, 
-                 TLockedQueue<std::shared_ptr<Vehicle>>& vehicle_charging_q)
-                                                                               
-{
-    std::vector<std::thread> charger_threads;
-    for(unsigned int i = 0; i < num_chargers; ++i)
-        charger_threads.push_back(std::thread(Run, std::ref(vehicle_charging_q), i));
+Charger::Charger(const unsigned int id, 
+                 ChargingQ& charging_q) : _id(id),
+                                          _charging_q {charging_q}                                                           
+{ }
 
-    for(auto& t : charger_threads)
-        t.detach();
+void Charger::Run()
+{
+    std::shared_ptr<Vehicle> v;
+
+    std::stringstream ss;
+    ss << "Running...";
+    print(ss);
+
+    while(_thread_state != ThreadState::EXIT)
+    {
+        if(_charging_q.try_dequeue(v))
+        {
+            v->ChangeState(CHARGING);
+
+            v->_vehicle_in_q_time_end    = std::chrono::steady_clock::now();
+            v->_vehicle_in_q_time_total += std::chrono::duration_cast<std::chrono::seconds>(v->_vehicle_in_q_time_end - 
+                                                                                            v->_vehicle_in_q_time_start);
+            int64_t ttc = v->TimeToCharge();
+
+            ss.str("");
+            ss << "Charging Vehicle " << v->Name() << " for " << ttc << " mins";
+            print(ss);
+
+            v->_vehicle_charging_time_start = std::chrono::steady_clock::now();
+
+            // Blocks for desired seconds OR thread exits
+            WaitFor(std::chrono::seconds(ttc));
+
+            v->_vehicle_charging_time_end    = std::chrono::steady_clock::now();
+            v->_vehicle_charging_time_total += std::chrono::duration_cast<std::chrono::seconds>(v->_vehicle_charging_time_end - v->_vehicle_charging_time_start);
+
+            ss.str("");
+            ss << "Charged " << v->Name();
+            print(ss);
+
+            v->ChangeState(CHARGED);
+        }
+    }
+
+    // Need to handle vehicle queue time for vehicles that are currently in 
+    // the charging queue when the simulation ends
+    while(_charging_q.try_dequeue(v))
+    {
+        v->_vehicle_in_q_time_end    = std::chrono::steady_clock::now();
+        v->_vehicle_in_q_time_total += std::chrono::duration_cast<std::chrono::seconds>(v->_vehicle_in_q_time_end - 
+                                                                                        v->_vehicle_in_q_time_start);
+    }
+}   
+
+/**
+ * @brief 
+ * 
+ * @param ss 
+ */
+void Charger::print(const std::stringstream& ss)
+{
+    tm localTime;
+    std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+    time_t now = std::chrono::system_clock::to_time_t(t);
+    localtime_r(&now, &localTime);
+
+    const std::chrono::duration<double> tse = t.time_since_epoch();
+    std::chrono::seconds::rep milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tse).count() % 1000;
+
+    std::stringstream msg;
+    msg << "["
+        << std::setfill('0') << std::setw(2) << localTime.tm_hour << ':'
+        << std::setfill('0') << std::setw(2) << localTime.tm_min  << ':'
+        << std::setfill('0') << std::setw(2) << localTime.tm_sec  << '.'
+        << std::setfill('0') << std::setw(3) << milliseconds
+        << "] "
+        << "<Charger " << _id << "> " << ss.str() << std::endl;
+
+    // Print to console
+    std::cout << msg.str();
 }
 
-void Charger::Run(TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ, 
-                  const unsigned int& charger_num)
+void Charger::PrintStats()
 {
-    std::stringstream msg;
-    msg << "Charger #" << charger_num << " running." << std::endl;
-    std::cout << msg.str();
-
-    while(true)
-    {
-        std::shared_ptr<Vehicle> v = chargingQ.dequeue();
-
-        // Time to charge converted from realtime (mins) to sim time (secs)
-        int64_t ttc = ceil(v->time_to_charge * 60);
-        std::stringstream msg;
-        msg << "<Charger #" << charger_num << "> Charging " << v->name << " for " << ttc << " mins" << std::endl;
-        std::cout << msg.str();
-        std::this_thread::sleep_for(std::chrono::seconds(ttc));
-        msg.str("");
-        msg << "<Charger #" << charger_num << "> Charged " << v->name << std::endl;
-        std::cout << msg.str();
-        v->state = VehicleStateType::CHARGED;
-    }
+    // Charger does not have any stats (yet)
 }

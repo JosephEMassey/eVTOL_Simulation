@@ -1,84 +1,78 @@
+#include <algorithm>
+#include <chrono>
+#include <ctime>
 #include <iostream>
 #include <random>
-#include <algorithm>
-#include <vector>
-#include <thread>
+#include <ratio>
 #include <sstream>
+#include <thread>
+#include <vector>
 
 #include "Simulation.h"
 #include "Vehicle.h"
 
-Simulation::Simulation()
+using namespace std::chrono;
+
+/**
+ * @brief Construct a new Simulation:: Simulation object
+ * 
+ * @param num_vehicles 
+ * @param num_vehicle_types 
+ * @param num_chargers 
+ */
+Simulation::Simulation(const unsigned short num_vehicles,
+                       const unsigned short num_vehicle_types,
+                       const unsigned short num_chargers) : _num_vehicles     (num_vehicles),
+                                                            _num_vehicle_types(num_vehicle_types),
+                                                            _num_chargers     (num_chargers)
 {
 
 }
 
-void Simulation::Create(const unsigned short numVehicles,
-                        const unsigned short numVehicleTypes,
-                        const unsigned short numChargers)
+/**
+ * @brief Creates vehicles and chargers simulation objects.  
+ * 
+ */
+void Simulation::Create()
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distr(0, numVehicleTypes-1);
+    std::uniform_int_distribution<> distr(0, _num_vehicle_types-1);
 
-    // Create random vehicles
-    for(int i = 0; i < numVehicles; i++)
-        _vehicles.push_back(Vehicle::Create(static_cast<VehicleType>(distr(gen))));
+    // Create N random vehicles from M types
+    for(int i = 0; i < _num_vehicles; ++i)
+        _sim_objs.push_back(Vehicle::Create(static_cast<VehicleType>(distr(gen)), i, _vehicle_charging_q));
 
     // Create chargers
-    _charger = std::make_shared<Charger>(numChargers, _vehicle_charging_q);
+    for(int i = 0; i < _num_chargers; ++i)
+        _sim_objs.push_back(std::make_unique<Charger>(i, _vehicle_charging_q));
 }
 
-void Simulation::Start()
+void Simulation::Run(const int64_t secs)
 {
-    // Vehicles
-    std::vector<std::thread> vehicle_threads;
-    for(auto& v : _vehicles)
-        vehicle_threads.push_back(std::thread(Run, std::cref(v), std::ref(_vehicle_charging_q)));
+    std::cout << "Starting simulation ... \n";
 
-    for(auto& v : vehicle_threads)
-        v.join();
-}
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
-void Simulation::Run(const std::shared_ptr<Vehicle>& v,
-                     TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ)
-{
-    while(true)
-    {
-        switch(v->state)
-        {
-            case VehicleStateType::NEEDS_CHARGED:
-                v->state = VehicleStateType::CHARGING;
-                chargingQ.enqueue(v);
-                break;
+    // Start simulation
+    for(auto& so : _sim_objs)
+        so->Start();
 
-            case VehicleStateType::CHARGED:
-                v->state = VehicleStateType::CRUISING;
-                break;
+    // Run simulation for secs
+    std::this_thread::sleep_for(std::chrono::seconds(secs));
 
-            case VehicleStateType::CHARGING:
-                break;
+    std::cout << "Stopping simulation ...\n";
 
-            case VehicleStateType::CRUISING:
-            {
-                int64_t cruise_time = v->CruiseTime();
-                std::stringstream msg;
-                msg << "<Vehicle " << v->name << ">" << " cruising for " << cruise_time << " mins" << std::endl;
-                std::cout << msg.str();
-                std::this_thread::sleep_for(std::chrono::seconds(cruise_time));
-            }
-                v->state = VehicleStateType::NEEDS_CHARGED;
-                break;
+    // Stop simulation
+    for(auto& so : _sim_objs)
+        so->Stop();
 
-            case VehicleStateType::EXIT:
-                return;
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+    std::cout << "Simulation ran for " << time_span.count() << " seconds.\n";
 
-            default:
-                break;
-        }
-    }
+    std::cout << "Calculating statistics ...\n";
 
-    std::stringstream msg;
-    msg << v->name << " EXITING " << std::endl;
-    std::cout << msg.str();
+    for(auto& so : _sim_objs)
+        so->PrintStats();
 }

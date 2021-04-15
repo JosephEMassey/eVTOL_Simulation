@@ -1,9 +1,7 @@
 #include <iostream>
 #include <memory>
-#include <thread>
 
 #include "Simulation.h"
-#include "TLockedQueue.h"
 
 using namespace std;
 
@@ -54,13 +52,14 @@ best.
 
 int main(void)
 {
-    unsigned short numVehicles = 20;
+    unsigned short numVehicles     = 20;
     unsigned short numVehicleTypes = 5;
-    unsigned short numChargers = 3;
+    unsigned short numChargers     = 3;
+    uint64_t secs = 10;
 
-    auto sim = std::make_shared<Simulation>();
-    sim->Create(numVehicles, numVehicleTypes, numChargers);
-    sim->Start();
+    auto sim = std::make_shared<Simulation>(numVehicles, numVehicleTypes, numChargers);
+    sim->Create();
+    sim->Run(secs);
 
     return 0;
 }
