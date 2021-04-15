@@ -20,7 +20,10 @@ public:
     virtual ~Simulation() = default;
 
     void Create();        
-    void Run(const int64_t sim_time_secs);
+    void Run(const int64_t sim_time_secs) const;
+
+    void PrintStatsForEachSimObject()   const;
+    void PrintStatsForEachVehicleType(const int64_t sim_time_secs) const;
 
 private:
     std::vector<std::shared_ptr<SimulationObject>> _sim_objs;
@@ -30,6 +33,5 @@ private:
     const unsigned short _num_vehicle_types;
     const unsigned short _num_chargers;
 };
-
 
 #endif

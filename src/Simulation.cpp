@@ -45,13 +45,14 @@ void Simulation::Create()
 }
 
 /**
- * @brief Runs the simulation for secs duration.  Initializes all necessary 
- *        objects, starts all threads, stops all threads, and finally 
- *        prints stats.
+ * @brief Runs the simulation for sim_time_secs. Each second that passes in 
+ *        realtime is equivalent to one minute of simulation time, i.e. 180s
+ *        of realtime is 3 hours for simulation time.  Prints stats of each
+ *        vehicle type.
  * 
  * @param secs Duration (seconds) to run simulation.
  */
-void Simulation::Run(const int64_t sim_time_secs)
+void Simulation::Run(const int64_t sim_time_secs) const
 {
     std::cout << "Starting simulation ... \n";
 
@@ -76,14 +77,41 @@ void Simulation::Run(const int64_t sim_time_secs)
 
     std::cout << "Calculating statistics ...\n";
 
-    // Individual stats
+    // Stats for each vehicle
+    PrintStatsForEachSimObject();
+
+    // Stats for each vehicle type (VehicleA, VehicleB, ...)
+    PrintStatsForEachVehicleType(sim_time_secs);
+}
+
+/**
+ * @brief Prints the stats for each simulation object (Vehicle, Charger).
+ * 
+ */
+void Simulation::PrintStatsForEachSimObject() const
+{
     for(auto const& so : _sim_objs)
         so->PrintStats();
+}
 
-    //
-    // Vehicle level stats
-    //
+/**
+ * @brief Prints the stats for each vehicle type (VehicleA, VehicleB, ...).
+ *          * Avg Flight Time (mins)
+ *          * Flight Time (%)
+ *          * Avg Charge Time (mins)
+ *          * Charge Time (%)
+ *          * Avg Qing Time (mins)
+ *          * Qing Time (%)
+ *          * Max Faults
+ * 
+ * @param sim_time_secs Duration (seconds) to run simulation.
+ */
+void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
+{
+    // Ideally I'd save the results to a file in a known format (i.e. csv) 
+    // and have some external tool plot/graph/display results.
 
+    // Find all Vehicle objects (downcast)
     std::map<std::string, std::vector<std::shared_ptr<Vehicle>>> vehicle_stats;
     for(auto const& so : _sim_objs)
     {
@@ -97,6 +125,7 @@ void Simulation::Run(const int64_t sim_time_secs)
     std::cout << "|  Vehicle  |  Avg Flight Time (mins)  |  Flight Time (%)  |  Avg Charge Time (mins)  |  Charge Time (%)  |  Avg Qing Time (mins)  |  Qing Time (%)  |  Max Faults  |" << std::endl;
     std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 
+    // Calculate all vehicle stats and prints to console
     for(auto const& [key, val] : vehicle_stats)
     {
         int64_t total_cruise = 0;
