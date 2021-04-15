@@ -1,3 +1,6 @@
+![Docker Build Status](https://img.shields.io/docker/cloud/build/josephemassey/evtol)
+[![CircleCI Build Status](https://circleci.com/gh/circleci/circleci-docs.svg?style=shield)](https://app.circleci.com/pipelines/github/JosephEMassey)
+
 <!-- TABLE OF CONTENTS -->
 <details open="open">
   <summary>Table of Contents</summary>
