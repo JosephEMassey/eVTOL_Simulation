@@ -121,9 +121,9 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
     }
 
     std::cout << "\n\nTotal Simulation Time: " << sim_time_secs << " mins" << std::endl;
-    std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-    std::cout << "|  Vehicle  |  Avg Flight Time (mins)  |  Flight Time (%)  |  Avg Charge Time (mins)  |  Charge Time (%)  |  Avg Qing Time (mins)  |  Qing Time (%)  |  Max Faults  |" << std::endl;
-    std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+    std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+    std::cout << "|  Vehicle  |  Num Vehicles  |  Avg Flight Time (mins)  |  Flight Time (%)  |  Avg Charge Time (mins)  |  Charge Time (%)  |  Avg Qing Time (mins)  |  Qing Time (%)  |  Max Faults  |" << std::endl;
+    std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 
     // Calculate all vehicle stats and prints to console
     for(auto const& [key, val] : vehicle_stats)
@@ -155,6 +155,7 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
 
         std::cout << std::setprecision(2) << std::fixed;
         std::cout << "|"   << std::right << std::setw(9) << std::setfill(' ') << key;
+        std::cout << "  |" << std::setw(14) << num_vehicles_in_sim;
         std::cout << "  |" << std::setw(24) << avg_cruise_mins;
         std::cout << "  |" << std::setw(17) << cruise_percentage;
         std::cout << "  |" << std::setw(24) << avg_charge_mins;
@@ -163,6 +164,6 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
         std::cout << "  |" << std::setw(15) << q_percentage;
         std::cout << "  |" << std::setw(12) << max_num_faults;
         std::cout << "  |" << std::endl;
-        std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+        std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
     }
 }

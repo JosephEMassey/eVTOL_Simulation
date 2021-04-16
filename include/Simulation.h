@@ -22,7 +22,7 @@ public:
     void Create();        
     void Run(const int64_t sim_time_secs) const;
 
-    void PrintStatsForEachSimObject()   const;
+    void PrintStatsForEachSimObject() const;
     void PrintStatsForEachVehicleType(const int64_t sim_time_secs) const;
 
 private:
