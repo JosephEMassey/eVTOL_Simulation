@@ -14,6 +14,10 @@ class Charger : public SimulationObject
 {
 public:
 
+    //
+    // Charger
+    //
+    
     /**
      * @brief Construct a new Charger object
      * 
@@ -53,13 +57,6 @@ public:
     //
 
     /**
-     * @brief String used to uniquely identify this object.
-     * 
-     * @return const std::string Header used to uniquely identify charger.
-     */
-    virtual const std::string Header() override;
-
-    /**
      * @brief Prints charger statistics to console.
      * 
      */
@@ -77,12 +74,17 @@ public:
 
 protected:
 
-    /**
-     * @brief Vehicle charging queue.
-     * 
-     */
-    ChargingQ& _charging_q;
+    //
+    // SimulationObject overrides
+    //
 
+    /**
+     * @brief String used to uniquely identify this object.
+     * 
+     * @return const std::string Header used to uniquely identify charger.
+     */
+    virtual const std::string Header() override;
+    
     /**
      * @brief Header of this object.
      * 
@@ -94,6 +96,12 @@ protected:
      * 
      */
     const uint16_t _id;
+
+    /**
+     * @brief Vehicle charging queue.
+     * 
+     */
+    ChargingQ& _charging_q;
 };
 
 #endif

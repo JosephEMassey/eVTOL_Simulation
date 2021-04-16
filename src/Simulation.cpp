@@ -83,26 +83,28 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
     }
 
     std::cout << "\n\nTotal Simulation Time: " << sim_time_secs << " mins" << std::endl;
-    std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-    std::cout << "|  Vehicle  |  Num Vehicles  |  Avg Flight Time (mins)  |  Flight Time (%)  |  Avg Charge Time (mins)  |  Charge Time (%)  |  Avg Qing Time (mins)  |  Qing Time (%)  |  Max Faults  |" << std::endl;
-    std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+    std::cout << "|  Vehicle  |  Num Vehicles  |  Avg Flight Time (mins)  |  Flight Time (%)  |  Avg Charge Time (mins)  |  Charge Time (%)  |  Avg Qing Time (mins)  |  Qing Time (%)  |  Total Distance (miles)  | Max Faults  |" << std::endl;
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 
     // Calculate all vehicle stats and print to console
     for(auto const& [key, val] : vehicle_stats)
     {
-        int64_t total_cruise = 0;
-        int64_t total_charge = 0;
-        int64_t total_q      = 0;
+        int64_t total_cruise   = 0;
+        int64_t total_charge   = 0;
+        int64_t total_q        = 0;
+        float   total_distance = 0.0;
 
         for(auto const& vehicle : val)
         {
             total_cruise += vehicle->CruisingTime.Total();
             total_charge += vehicle->ChargingTime.Total();
             total_q      += vehicle->QingTime.Total();
+            total_distance += vehicle->TotalDistance();
         }
 
         float probability_fault = val[0]->ProbabilityOfFault();
-
+        
         int64_t num_vehicles_in_sim = val.size();
 
         int64_t avg_cruise_mins = total_cruise / num_vehicles_in_sim;
@@ -115,6 +117,8 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
         float charge_percentage = float(total_charge) / float(sim_time_secs * num_vehicles_in_sim) * 100.0f;
         float q_percentage      = float(total_q)      / float(sim_time_secs * num_vehicles_in_sim) * 100.0f;
 
+        //float total_distance = val[0]->PassengerCount() * val[0]->CruiseSpeed() * float(total_cruise) / 60;
+
         std::cout << std::setprecision(2) << std::fixed;
         std::cout << "|"   << std::right << std::setw(9) << std::setfill(' ') << key;
         std::cout << "  |" << std::setw(14) << num_vehicles_in_sim;
@@ -124,9 +128,10 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
         std::cout << "  |" << std::setw(17) << charge_percentage;
         std::cout << "  |" << std::setw(22) << avg_q_mins;
         std::cout << "  |" << std::setw(15) << q_percentage;
-        std::cout << "  |" << std::setw(12) << max_num_faults;
+        std::cout << "  |" << std::setw(24) << total_distance;
+        std::cout << "  |" << std::setw(11) << max_num_faults;
         std::cout << "  |" << std::endl;
-        std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+        std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
     }
 }
 

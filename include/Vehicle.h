@@ -1,9 +1,9 @@
 #ifndef VEHICLE_H
 #define VEHICLE_H
 
+#include <memory>
 #include <string>
 #include <sstream>
-#include <memory>
 
 #include "SimulationObject.h"
 #include "StopWatch.h"
@@ -93,14 +93,21 @@ public:
      */
     virtual ~Vehicle() = default;
 
-    virtual void Run()        override;
-    virtual void PrintStats() override;
-    virtual const std::string Header() override;
+    /**
+     * @brief Creates an instance of the requested Vehicle using Factory of vehicles.
+     * 
+     * @param type 
+     * @param id 
+     * @param chargingQ 
+     * @return std::shared_ptr<Vehicle> 
+     */
+    static std::shared_ptr<Vehicle> Create(VehicleType type, 
+                                           const uint16_t id,
+                                           TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ);
 
-    // States
-    void NeedsCharged();
-    void Cruise();
-    void ChangeState(VehicleStateType state);
+    //
+    // Properties
+    //
 
     /**
      * @brief Battery capacity (kWh).
@@ -108,20 +115,6 @@ public:
      * @return uint16_t Battery capacity (kWh).
      */
     uint16_t BatteryCapacity() const { return _battery_capacity; }
-
-    /**
-     * @brief Calculates the cruise time in seconds converted to simulation time.
-     * 
-     * @return int64_t Cruise time in seconds.
-     */
-    int64_t CruiseTime() const;
-
-    /**
-     * @brief Calculates the time to charge in seconds converted to simulation time.
-     * 
-     * @return int64_t Time to Charge in seconds.
-     */
-    int64_t ChargeTime() const;
 
     /**
      * @brief Cruise speed (mph).
@@ -149,7 +142,7 @@ public:
      * 
      * @return const std::string Name of vehicle.
      */
-    const std::string Name()  const { return _name; }
+    const std::string Name() const { return _name; }
 
     /**
      * @brief Passenger count.
@@ -172,6 +165,43 @@ public:
      */
     float TimeToCharge() const { return _time_to_charge; }
 
+    //
+    // Vehicle
+    //
+
+    /**
+     * @brief Changes the current state of this vehicle.
+     * 
+     * @param state State to switch to.
+     */
+    void ChangeState(VehicleStateType state);
+
+    /**
+     * @brief Simulates a vehicle cruising by blocking thread for CruiseTime().
+     * 
+     */
+    void CruiseAction();
+
+    /**
+     * @brief Calculates the cruise time in seconds converted to simulation time.
+     * 
+     * @return int64_t Cruise time in seconds.
+     */
+    int64_t CruiseTime() const;
+
+    /**
+     * @brief Calculates the time to charge in seconds converted to simulation time.
+     * 
+     * @return int64_t Time to Charge in seconds.
+     */
+    int64_t ChargeTime() const;
+
+    /**
+     * @brief Pushes vehicle to charging queue.
+     * 
+     */
+    void NeedsChargedAction();
+
     /**
      * @brief Formatted string describing this vehicle.
      * 
@@ -179,36 +209,90 @@ public:
      */
     const std::string ToString() const;
 
-    static std::shared_ptr<Vehicle> Create(VehicleType type, 
-                                           const uint16_t id,
-                                           TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ);
+    /**
+     * @brief Total distance traveled.
+     * 
+     * @return float 
+     */
+    float TotalDistance();
 
+    /**
+     * @brief Prints vehicle statistics to console.
+     * 
+     */
+    virtual void PrintStats() override;
+    
+    //
+    // SimulationThread overrides
+    // 
+
+    /**
+     * @brief Thread of execution to run.  Simulates a vehicle 
+     *        and all it's states.  Is a producer of the shared 
+     *        vehicle queue (thread-safe).
+     * 
+     */
+    virtual void Run() override;
+
+    //
+    // Properties
+    //
+
+    /**
+     * @brief Cruising duration converted to simulation time (seconds).
+     * 
+     */
     StopWatch CruisingTime;
+
+    /**
+     * @brief Charging duration converted to simulation time (seconds).
+     * 
+     */
     StopWatch ChargingTime;
+
+    /**
+     * @brief Queueing duration converted to simulation time (seconds).
+     * 
+     */
     StopWatch QingTime;
 
 protected:
 
+    //
+    // SimulationObject overrides
+    //
+
     /**
-     * @brief 
+     * @brief String used to uniquely identify this object.
      * 
+     * @return const std::string Header used to uniquely identify charger.
      */
-    const std::string _name;
+    virtual const std::string Header() override;
+
+    //
+    // Properties
+    //
 
     const uint16_t _battery_capacity;
     const uint16_t _cruise_speed;
-    const uint16_t _passenger_count; 
-
     const float _energy_use_at_cruise;
+    const std::string _header;
+    const uint16_t _id; 
+    const std::string _name;
+    const uint16_t _passenger_count; 
     const float _prob_of_fault;
     const float _time_to_charge;
 
-    const uint16_t _id;    
-
-    const std::string _header;
-
+    /**
+     * @brief Vehicle charging queue.
+     * 
+     */
     TLockedQueue<std::shared_ptr<Vehicle>>& _charging_q;
 
+    /**
+     * @brief Current state of vehicle.
+     * 
+     */
     VehicleStateType _state;
 };
 

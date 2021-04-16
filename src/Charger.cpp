@@ -7,9 +7,9 @@
  * @param charging_q Vehicle charging queue.
  */
 Charger::Charger(uint16_t   id, 
-                 ChargingQ& charging_q) : _charging_q {charging_q},
-                                          _header("<Charger " + std::to_string(_id) + "> "),
-                                          _id(id)                                                 
+                 ChargingQ& charging_q) : _header("<Charger " + std::to_string(id) + "> "),
+                                          _id(id),
+                                          _charging_q {charging_q}                                            
 { }
 
 /**
@@ -46,6 +46,10 @@ void Charger::Run()
     // Charge vehicles
     while(_thread_state != ThreadState::EXIT)
     {
+        // sleep at every iteration to reduce CPU usage
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+        // Check to see if there are any vehicles waiting to be charged
         if(_charging_q.try_dequeue(v))
         {
             // Vehicle is charging

@@ -10,15 +10,46 @@ class SimulationObject : public SimulationThread
 {
 public:
 
-    SimulationObject()                                    = default; // Default CTor
-    SimulationObject(const SimulationObject &)            = delete;  // Disable Copy
-    SimulationObject &operator=(const SimulationObject &) = delete;  // Disable Assignment
+    /**
+     * @brief Default Constructor
+     * 
+     */
+    SimulationObject() = default;
 
-    virtual ~SimulationObject() = default; // Default DTor
+    /**
+     * @brief Default Copy Constructor (disabled)
+     * 
+     */
+    SimulationObject(const SimulationObject &) = delete;
 
-    virtual const std::string Header() = 0;
-    virtual void PrintStats()          = 0;
+    /**
+     * @brief Assignment operator (disabled)
+     * 
+     * @return SimulationObject& 
+     */
+    SimulationObject &operator=(const SimulationObject &) = delete;
+
+    /**
+     * @brief Destroy the Simulation Object object
+     * 
+     */
+    virtual ~SimulationObject() = default;
+
+    /**
+     * @brief Prints the stats of this object.
+     * 
+     */
+    virtual void PrintStats() = 0;
     
+protected:
+
+    /**
+     * @brief Header identifier used to identify this object.
+     * 
+     * @return const std::string 
+     */
+    virtual const std::string Header() = 0;
+
     /**
      * @brief Prints stream to console prefixed with timestamp.
      * 

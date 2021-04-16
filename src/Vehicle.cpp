@@ -1,10 +1,20 @@
-#include <future>
-#include <iomanip>
-#include <iostream>
 #include <random>
 
 #include "Vehicle.h"
 
+/**
+ * @brief Construct a new Vehicle object.
+ * 
+ * @param n Name of vehicle.
+ * @param bc Battery capacity (kWh).
+ * @param cs Cruise speed (mph)
+ * @param pc Passenger count.
+ * @param eac Energy use at cruise (KWh/mile).
+ * @param pof Probability of fault (fault/hr).
+ * @param ttc Time to charge (hr)
+ * @param id Identification of this vehicle
+ * @param chargingQ Vehicle charging queue.
+ */
 Vehicle::Vehicle(const std::string& n,
                  const uint16_t     bc,
                  const uint16_t     cs,
@@ -13,42 +23,32 @@ Vehicle::Vehicle(const std::string& n,
                  const float        pof,
                  const float        ttc,
                  const uint16_t     id,
-                 TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ)  
-                                            : _name                (n),
-                                              _battery_capacity    (bc),
-                                              _cruise_speed        (cs),
-                                              _passenger_count     (pc),
-                                              _energy_use_at_cruise(eac),
-                                              _prob_of_fault       (pof),
-                                              _time_to_charge      (ttc),
-                                              _id                  (id),
-                                              _header("<Vehicle " + _name + std::to_string(_id) + "> "),
-                                              _charging_q { chargingQ },
-                                              _state(INITIAL)
+                 ChargingQ& chargingQ) : _battery_capacity    (bc),
+                                         _cruise_speed        (cs),
+                                         _energy_use_at_cruise(eac),
+                                         _header("<Vehicle " + n + std::to_string(id) + "> "),
+                                         _id                  (id),
+                                         _name                (n),
+                                         _passenger_count     (pc),
+                                         _prob_of_fault       (pof),
+                                         _time_to_charge      (ttc),
+                                         _charging_q { chargingQ },
+                                         _state(INITIAL)
 { 
 
 }
 
 /**
- * @brief 
+ * @brief Creates an instance of the requested Vehicle using Factory of vehicles.
  * 
- * @return const std::string 
+ * @param type 
+ * @param id 
+ * @param chargingQ 
+ * @return std::shared_ptr<Vehicle> 
  */
-const std::string Vehicle::ToString() const
-{   
-    std::stringstream ss;
-    ss << "Name:                 " << _name             << std::endl;
-    ss << "Cruise Speed:         " << _cruise_speed     << std::endl;
-    ss << "Battery Capacity:     " << _battery_capacity << std::endl;
-    ss << "Time to Charge:       " << _time_to_charge   << std::endl;
-    ss << "Passenger Count:      " << _passenger_count  << std::endl;
-    ss << "Probability of Fault: " << _prob_of_fault    << std::endl;
-    return ss.str();
-}
-
 std::shared_ptr<Vehicle> Vehicle::Create(VehicleType type, 
                                          const uint16_t id,
-                                         TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ)
+                                         ChargingQ& chargingQ)
 {
     switch(type)
     {
@@ -65,6 +65,36 @@ std::shared_ptr<Vehicle> Vehicle::Create(VehicleType type,
         default:
             return nullptr;
     }
+}
+
+/**
+ * @brief Changes the current state of this vehicle.
+ * 
+ * @param state State to switch to.
+ */
+void Vehicle::ChangeState(VehicleStateType state)
+{
+    _state = state;
+}
+
+/**
+ * @brief Simulates a vehicle cruising by blocking thread for CruiseTime().
+ * 
+ */
+void Vehicle::CruiseAction()
+{
+    int64_t cruise_time = CruiseTime();
+
+    std::stringstream ss;
+    ss << "Cruising for " << cruise_time << " mins";
+    PrintToConsole(ss);
+
+    CruisingTime.Tik();
+
+    // Blocks for desired seconds OR thread exits
+    WaitFor(std::chrono::seconds(cruise_time));
+
+    CruisingTime.Tok();
 }
 
 /**
@@ -88,7 +118,95 @@ int64_t Vehicle::ChargeTime() const
 }
 
 /**
- * @brief 
+ * @brief Pushes vehicle to charging queue.
+ * 
+ */
+void Vehicle::NeedsChargedAction()
+{
+    // Save vehicle queueing start time
+    QingTime.Tik();
+
+    // Add this vehicle to the charging queue
+    _charging_q.enqueue(shared_from_this());
+}
+
+/**
+ * @brief Formatted string describing this vehicle.
+ * 
+ * @return const std::string Formatted string describing this vehicle.
+ */
+const std::string Vehicle::ToString() const
+{   
+    std::stringstream ss;
+    ss << "Name:                 " << _name             << std::endl;
+    ss << "Cruise Speed:         " << _cruise_speed     << std::endl;
+    ss << "Battery Capacity:     " << _battery_capacity << std::endl;
+    ss << "Time to Charge:       " << _time_to_charge   << std::endl;
+    ss << "Passenger Count:      " << _passenger_count  << std::endl;
+    ss << "Probability of Fault: " << _prob_of_fault    << std::endl;
+    return ss.str();
+}
+
+/**
+ * @brief Total distance traveled.
+ * 
+ * @return float 
+ */
+float Vehicle::TotalDistance()
+{
+    return PassengerCount() * CruiseSpeed() * float(CruisingTime.Total()) / 60;
+}
+
+//
+// Simulation overrides
+//
+
+/**
+ * @brief String used to uniquely identify this object.
+ * 
+ * @return const std::string Header used to uniquely identify charger.
+ */
+const std::string Vehicle::Header()
+{
+    return _header;
+}
+
+/**
+ * @brief Prints vehicle statistics to console.
+ * 
+ */
+void Vehicle::PrintStats()
+{
+    std::stringstream output;
+    output << "\n-----------------------------------------------------------------------------------------------------------------" << std::endl;
+    output << "|  Total Flight Time (mins)  |  Total Charge Time (mins)  |  Total Qing Time (mins)  |  Total Distance (miles)  |" << std::endl;
+    output << "-----------------------------------------------------------------------------------------------------------------" << std::endl;
+    
+    output << std::setprecision(2) << std::fixed;
+    output << "|"    << std::right << std::setw(25) << std::setfill(' ') << CruisingTime.Total();
+    output << "   |" << std::setw(25) << ChargingTime.Total();
+    output << "   |" << std::setw(23) << QingTime.Total();
+    output << "   |" << std::setw(23) << TotalDistance();
+    output << "   |" << std::endl;
+    output << "-----------------------------------------------------------------------------------------------------------------" << std::endl;
+    
+    // output << "Total Cruising Time: "  << CruisingTime.Total() << " mins\t"
+    //        << "Total Charging Time: "  << ChargingTime.Total() << " mins\t"
+    //        << "Total Q Time: "         << QingTime.Total()     << " mins\t"
+    //        << "Total Distance: "       << TotalDistance()      << " miles\t";
+    //        //<< "Probability of Fault: " << prob_of_fault * (180 / 60);
+
+    PrintToConsole(output);
+}
+
+//
+// SimulationThread overrides
+// 
+
+/**
+ * @brief Thread of execution to run.  Simulates a vehicle 
+ *        and all its states.  Is a producer of the shared 
+ *        vehicle queue (thread-safe).
  * 
  */
 void Vehicle::Run()
@@ -109,7 +227,7 @@ void Vehicle::Run()
                 break;
 
             case NEEDS_CHARGED:
-                NeedsCharged();
+                NeedsChargedAction();
                 ChangeState(CHARGING);
                 break;
 
@@ -118,7 +236,7 @@ void Vehicle::Run()
                 break;
 
             case CRUISING:
-                Cruise();
+                CruiseAction();
                 ChangeState(NEEDS_CHARGED);
                 break;
             
@@ -127,60 +245,4 @@ void Vehicle::Run()
                 break; 
         }
     }
-}
-
-void Vehicle::ChangeState(VehicleStateType state)
-{
-    _state = state;
-}
-
-void Vehicle::Cruise()
-{
-    int64_t cruise_time = CruiseTime();
-
-    std::stringstream ss;
-    ss << "Cruising for " << cruise_time << " mins";
-    PrintToConsole(ss);
-
-    CruisingTime.Tik();
-
-    // Blocks for desired seconds OR thread exits
-    WaitFor(std::chrono::seconds(cruise_time));
-
-    CruisingTime.Tok();
-}
-
-void Vehicle::NeedsCharged()
-{
-    QingTime.Tik();
-
-    // Add this vehicle to the charging queue
-    _charging_q.enqueue(shared_from_this());
-}
-
-void Vehicle::PrintStats()
-{
-    // Print stats
-    // average time in flight                 = Total Cruising Time / Simulation Time
-    // average time charging                  = Total Charging Time / Simulation Time
-    // average time waiting in line to charge = Total Time In Q     / Simulation Time 
-    // max number of faults                   = Probability of fault/hr * 60 * Simulation Time
-    // total distance traveled by passengers  = Passenger Count * Total Cruising Time * Cruise Speed
-
-    //                                         4 * 120 mph * (60 m / 60) = 480    miles
-    //                                         5 * 100 mph * (74 m / 60) = 616.67 miles
-
-    std::stringstream output;
-    output << "Total Cruising Time: "  << CruisingTime.Total() << " mins\t"
-           << "Total Charging Time: "  << ChargingTime.Total() << " mins\t"
-           << "Total Q Time: "         << QingTime.Total()     << " mins\t"
-           << "Total Distance: "       << _passenger_count * _cruise_speed * float(CruisingTime.Total()) / 60 << " miles\t";
-           //<< "Probability of Fault: " << prob_of_fault * (180 / 60);
-
-    PrintToConsole(output);
-}
-
-const std::string Vehicle::Header()
-{
-    return _header;
 }
