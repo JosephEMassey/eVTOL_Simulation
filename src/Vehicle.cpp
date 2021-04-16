@@ -47,7 +47,7 @@ const std::string Vehicle::ToString() const
 }
 
 std::shared_ptr<Vehicle> Vehicle::Create(VehicleType type, 
-                                         const unsigned short id,
+                                         const uint16_t id,
                                          TLockedQueue<std::shared_ptr<Vehicle>>& chargingQ)
 {
     switch(type)
@@ -85,11 +85,6 @@ int64_t Vehicle::CruiseTime() const
 int64_t Vehicle::ChargeTime() const
 {
     return ceil(_time_to_charge * 60);
-}
-
-float Vehicle::ProbabilityOfFault() const
-{
-    return _prob_of_fault;
 }
 
 /**

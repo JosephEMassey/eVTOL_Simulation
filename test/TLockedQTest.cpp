@@ -27,12 +27,12 @@ class TLockedQTest: public ::testing::Test
 
 TEST_F (TLockedQTest, enqueue) 
 { 
-    EXPECT_EQ(0, _q.size());
+    EXPECT_EQ(0, _q.Size());
 
     for(unsigned int i = 0; i < 10; ++i)
         _q.enqueue(i);
 
-    EXPECT_EQ(10, _q.size());
+    EXPECT_EQ(10, _q.Size());
 }
 
 TEST_F (TLockedQTest, dequeue) 
@@ -40,8 +40,8 @@ TEST_F (TLockedQTest, dequeue)
     for(unsigned int i = 0; i < 10; ++i)
         _q.enqueue(i);
 
-    while(_q.size())
+    while(_q.Size())
         _q.dequeue();
 
-    EXPECT_EQ(0, _q.size());
+    EXPECT_EQ(0, _q.Size());
 }

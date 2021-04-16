@@ -4,7 +4,8 @@
 
 #include "Simulation.h"
 
-// ./eVTOL_Simulation -v 20 -c 3 -s 180
+// Example usage:
+//   ./eVTOL_Simulation -v 20 -c 3 -s 180
 
 int main(int argc, char** argv)
 {   

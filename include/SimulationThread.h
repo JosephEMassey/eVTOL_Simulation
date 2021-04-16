@@ -6,6 +6,10 @@
 #include <thread>
 #include <vector>
 
+/**
+ * @brief State of thread.
+ * 
+ */
 enum ThreadState
 {
     RUNNING,
@@ -13,29 +17,98 @@ enum ThreadState
     EXIT
 };
 
+/**
+ * @brief Wrapper for std::thread for convenience.
+ * 
+ */
 class SimulationThread
 {
 public:
 
-    SimulationThread()                                    = default; // Default CTor
-    SimulationThread(const SimulationThread &)            = delete;  // Disable Copy
-    SimulationThread &operator=(const SimulationThread &) = delete;  // Disable Assignment
+    /**
+     * @brief Default Constructor.
+     * 
+     */
+    SimulationThread() = default;
 
-    virtual ~SimulationThread() = default; // Default DTor
+    /**
+     * @brief Default Copy Constructor (disabled).
+     * 
+     */
+    SimulationThread(const SimulationThread &) = delete;
 
+    /**
+     * @brief Assignment operator (disabled).
+     * 
+     * @return SimulationThread& 
+     */
+    SimulationThread &operator=(const SimulationThread &) = delete;
+
+    /**
+     * @brief Destroy the Simulation Thread object.
+     * 
+     */
+    virtual ~SimulationThread() = default;
+
+    /**
+     * @brief Joins the current thread and will return once the thread execution has completed.
+     * 
+     */
     virtual void Join();
+
+    /**
+     * @brief Thread of execution to run.
+     * 
+     */
     virtual void Run();
+
+    /**
+     * @brief Starts the thread.
+     * 
+     */
     virtual void Start();
+    
+    /**
+     * @brief Stops the thread.
+     * 
+     */
     virtual void Stop();
 
+    /**
+     * @brief Blocks thread for duration OR signaled to exit.
+     * 
+     * @tparam Duration 
+     * @param duration Maximum time span during which the thread
+     *                 will block waiting to be notified.
+     * @return true  Thread was signaled to exit.
+     * @return false Thread completed the duration. 
+     */
     template<class Duration> bool WaitFor(Duration duration);
 
 protected:
 
-    ThreadState _thread_state;
+    /**
+     * @brief A single thread of execution.
+     * 
+     */
     std::unique_ptr<std::thread> _thread;
 
-    std::mutex              _cs;
+    /**
+     * @brief Current state of thread.
+     * 
+     */
+    ThreadState _thread_state;
+    
+    /**
+     * @brief Locks access and used to exit thread.
+     * 
+     */
+    std::mutex _cs;
+
+    /**
+     * @brief Signals threads to exit.
+     * 
+     */
     std::condition_variable _cv;
 
 private:

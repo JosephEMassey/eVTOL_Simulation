@@ -42,7 +42,7 @@ void SimulationThread::Stop()
 }
 
 /**
- * @brief 
+ * @brief Thread of execution to run.
  * 
  * @param st 
  */

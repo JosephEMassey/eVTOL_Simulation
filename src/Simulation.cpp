@@ -18,9 +18,11 @@ using namespace std::chrono;
  */
 Simulation::Simulation(const unsigned short num_vehicles,
                        const unsigned short num_vehicle_types,
-                       const unsigned short num_chargers) : _num_vehicles     (num_vehicles),
+                       const unsigned short num_chargers) : _num_chargers     (num_chargers),
+                                                            _num_vehicles     (num_vehicles),
                                                             _num_vehicle_types(num_vehicle_types),
-                                                            _num_chargers     (num_chargers)
+                                                            _sim_objs(),
+                                                            _vehicle_charging_q()
 {
 
 }
@@ -45,47 +47,7 @@ void Simulation::Create()
 }
 
 /**
- * @brief Runs the simulation for sim_time_secs. Each second that passes in 
- *        realtime is equivalent to one minute of simulation time, i.e. 180s
- *        of realtime is 3 hours for simulation time.  Prints stats of each
- *        vehicle type.
- * 
- * @param secs Duration (seconds) to run simulation.
- */
-void Simulation::Run(const int64_t sim_time_secs) const
-{
-    std::cout << "Starting simulation ... \n";
-
-    high_resolution_clock::time_point t1 = high_resolution_clock::now();
-
-    // Start simulation
-    for(auto const& so : _sim_objs)
-        so->Start();
-
-    // Run simulation for secs
-    std::this_thread::sleep_for(std::chrono::seconds(sim_time_secs));
-
-    std::cout << "Stopping simulation ...\n";
-
-    // Stop simulation
-    for(auto const& so : _sim_objs)
-        so->Stop();
-
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
-    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-    std::cout << "Simulation ran for " << time_span.count() << " seconds.\n";
-
-    std::cout << "Calculating statistics ...\n";
-
-    // Stats for each vehicle
-    PrintStatsForEachSimObject();
-
-    // Stats for each vehicle type (VehicleA, VehicleB, ...)
-    PrintStatsForEachVehicleType(sim_time_secs);
-}
-
-/**
- * @brief Prints the stats for each simulation object (Vehicle, Charger).
+ * @brief Prints the stats for each simulation object (Vehicle, Charger) to the console.
  * 
  */
 void Simulation::PrintStatsForEachSimObject() const
@@ -95,7 +57,7 @@ void Simulation::PrintStatsForEachSimObject() const
 }
 
 /**
- * @brief Prints the stats for each vehicle type (VehicleA, VehicleB, ...).
+ * @brief Calculates and prints stats for each vehicle type (VehicleA, VehicleB, ...).
  *          * Avg Flight Time (mins)
  *          * Flight Time (%)
  *          * Avg Charge Time (mins)
@@ -108,8 +70,8 @@ void Simulation::PrintStatsForEachSimObject() const
  */
 void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
 {
-    // Ideally I'd save the results to a file in a known format (i.e. csv) 
-    // and have some external tool plot/graph/display results.
+    // Ideally the results would be saved to a file in a known format (i.e. csv) 
+    // and have some external tool plot/graph/display results.  Please do not judge me.
 
     // Find all Vehicle objects (downcast)
     std::map<std::string, std::vector<std::shared_ptr<Vehicle>>> vehicle_stats;
@@ -125,7 +87,7 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
     std::cout << "|  Vehicle  |  Num Vehicles  |  Avg Flight Time (mins)  |  Flight Time (%)  |  Avg Charge Time (mins)  |  Charge Time (%)  |  Avg Qing Time (mins)  |  Qing Time (%)  |  Max Faults  |" << std::endl;
     std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 
-    // Calculate all vehicle stats and prints to console
+    // Calculate all vehicle stats and print to console
     for(auto const& [key, val] : vehicle_stats)
     {
         int64_t total_cruise = 0;
@@ -166,4 +128,44 @@ void Simulation::PrintStatsForEachVehicleType(const int64_t sim_time_secs) const
         std::cout << "  |" << std::endl;
         std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
     }
+}
+
+/**
+ * @brief Runs the simulation for sim_time_secs. Each second that passes in 
+ *        realtime is equivalent to one minute of simulation time, i.e. 180s
+ *        of realtime is 3 hours for simulation time.  Prints stats of each
+ *        vehicle type.
+ * 
+ * @param sim_time_secs Duration (seconds) to run simulation.
+ */
+void Simulation::Run(const int64_t sim_time_secs) const
+{
+    std::cout << "Starting simulation ... \n";
+
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+    // Start simulation
+    for(auto const& so : _sim_objs)
+        so->Start();
+
+    // Run simulation for secs
+    std::this_thread::sleep_for(std::chrono::seconds(sim_time_secs));
+
+    std::cout << "Stopping simulation ...\n";
+
+    // Stop simulation
+    for(auto const& so : _sim_objs)
+        so->Stop();
+
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+    std::cout << "Simulation ran for " << time_span.count() << " seconds.\n";
+
+    std::cout << "Calculating statistics ...\n";
+
+    // Stats for each vehicle
+    PrintStatsForEachSimObject();
+
+    // Stats for each vehicle type (VehicleA, VehicleB, ...)
+    PrintStatsForEachVehicleType(sim_time_secs);
 }
