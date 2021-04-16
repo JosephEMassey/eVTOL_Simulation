@@ -57,7 +57,7 @@ public:
      * @brief Creates random vehicles and chargers simulation objects. 
      * 
      */
-    void Create();
+    size_t Create();
 
     /**
      * @brief Prints the stats for each simulation object (Vehicle, Charger) to the console.

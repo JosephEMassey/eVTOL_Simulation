@@ -31,7 +31,7 @@ Simulation::Simulation(const unsigned short num_vehicles,
  * @brief Creates random vehicles and chargers simulation objects.  
  * 
  */
-void Simulation::Create()
+size_t Simulation::Create()
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -44,6 +44,8 @@ void Simulation::Create()
     // Create chargers
     for(int i = 0; i < _num_chargers; ++i)
         _sim_objs.push_back(std::make_shared<Charger>(i, _vehicle_charging_q));
+
+    return _sim_objs.size();
 }
 
 /**
