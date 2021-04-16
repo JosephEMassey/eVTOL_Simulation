@@ -14,11 +14,9 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#results">Results</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
   </ol>
@@ -80,10 +78,82 @@ best.
 Clone repository and open in visual studio code.  Upon opening visual studio code will build docker container. 
 
 
-<!-- USAGE EXAMPLES -->
-## Usage
+<!-- RESULTS -->
+## Results
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+Total Simulation Time: 180 mins
+<table>
+  <thead>
+    <tr>
+      <th><sub>Vehicle</sub></th>
+      <th><sub>Num Vehicles</sub></th>
+      <th><sub>Avg Flight Time (mins)</sub></th>
+      <th><sub>Flight Time (%)</sub></th>
+      <th><sub>Avg Charge Time (mins)</sub></th>
+      <th><sub>Charge Time (%)</sub></th>
+      <th><sub>Avg Qing Time (mins)</sub></th>
+      <th><sub>Qing Time (%)</sub></th>
+      <th><sub>Max Faults</sub></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><sub>A</sub></td>
+      <td><sub>4</sub></td>
+      <td><sub>106</sub></td>
+      <td><sub>59.17</sub></td>
+      <td><sub>21</sub></td>
+      <td><sub>11.94</sub></td>
+      <td><sub>51</sub></td>
+      <td><sub>28.75</sub></td>
+      <td><sub>3.00</sub></td>
+    </tr>
+    <tr>
+      <td><sub>B</sub></td>
+      <td><sub>4</sub></td>
+      <td><sub>87</sub></td>
+      <td><sub>48.75</sub></td>
+      <td><sub>15</sub></td>
+      <td><sub>8.33</sub></td>
+      <td><sub>76</sub></td>
+      <td><sub>42.50</sub></td>
+      <td><sub>1.20</sub></td>
+    </tr>
+    <tr>
+      <td><sub>C</sub></td>
+      <td><sub>2</sub></td>
+      <td><sub>74</sub></td>
+      <td><sub>41.11</sub></td>
+      <td><sub>48</sub></td>
+      <td><sub>26.67</sub></td>
+      <td><sub>58</sub></td>
+      <td><sub>32.22</sub></td>
+      <td><sub>0.30</sub></td>
+    </tr>
+    <tr>
+      <td><sub>D</sub></td>
+      <td><sub>3</sub></td>
+      <td><sub>102</sub></td>
+      <td><sub>57.04</sub></td>
+      <td><sub>19</sub></td>
+      <td><sub>10.93</sub></td>
+      <td><sub>57</sub></td>
+      <td><sub>31.67</sub></td>
+      <td><sub>1.98</sub></td>
+    </tr>
+    <tr>
+      <td><sub>E</sub></td>
+      <td><sub>7</sub></td>
+      <td><sub>100</sub></td>
+      <td><sub>55.87</sub></td>
+      <td><sub>18</sub></td>
+      <td><sub>10.00</sub></td>
+      <td><sub>60</sub></td>
+      <td><sub>33.81</sub></td>
+      <td><sub>12.81</sub></td>
+    </tr>
+  </tbody>
+</table>
 
 
 <!-- LICENSE -->
